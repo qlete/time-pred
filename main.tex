@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{custom}
+
+\title{LINMA 2120 - Seminars in Applied Mathematics \\
+        High dimensional time-series prediction with missing values}
+\author{Quentin Lété}
+\date{November 2017}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Let us first give a definition of time series to explain the formal context in which we work.
+
+\theoremstyle{definition}
+\begin{definition}{Time series}
+A time series is a sequence of data indexed by the time.
+\end{definition}
+
+A time series is thus a realization of a stochastic process which can be seen as a family of random variables indexed by the time.
+
+\section*{Classical methods}
+In this section, we present classical methods used for time series forecasting.
+These classical methods include AR (autoregressive) models and DLM (dynamic linear models) and are used for prediction.
+Let us explain sequentially these models.
+
+\subsection*{Autoregressive models}
+As explained in \cite{pmlr-v37-anava15}, the idea of this model is to represent each observation as a noisy linear combination of previous observations.
+Formally, if $X_t$ is the measurement at time $t$, the AR(p) model prametrized by the lag $p$ and the coefficient vector $\alpha \in \mathbb{R}^p$ can be written as
+
+$$X_t = \sum_{k=1}^p \alpha_k X_{t-k} + \epsilon_t$$
+
+where $\{ \epsilon_t \}_t \in \mathbb{Z}$ is a white noise.
+
+This moedel is motivated by a thorem due to Wold that states that a stationary process can be represented by a MA($\infty$) model, that is
+
+$$X_t = \sum_{i=1}^{\infty} \beta_i \epsilon_{t-i} + \epsilon_t$$
+
+where $\sum_{i=1}^\infty \beta_i < \infty$ and $\{\epsilon_t\}_{t \in \mathbb{Z}}$ have zero mean and equal variance. And if $\{ X_t \}_t^\infty$ is invertible, we also have that it can be represented by an AR$(\infty)$ model, that is
+
+$$X_t = \sum_{i=1}^{\infty} \alpha_i X_{t-i} + \epsilon_t$$
+
+With this theorem, it seems natural to use AR$(p)$ models for prediction.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
