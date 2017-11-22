@@ -13,14 +13,26 @@
 
 \section{Introduction}
 
-Let us first give a definition of time series to explain the formal context in which we work.
+Let us first give a definition of time series to explain the formal context in which we work. \\
 
 \theoremstyle{definition}
 \begin{definition}{Time series}
 A time series is a sequence of data indexed by the time.
 \end{definition}
 
-A time series is thus a realization of a stochastic process which can be seen as a family of random variables indexed by the time.
+A time series is thus a realization of a stochastic process which can be seen as a family of random variables indexed by the time. \\
+
+We also define here a property of a stochastic process that will be useful later : the Markow property. \\
+
+\begin{definition}{Markov property}
+We say that $(Y_t)_{t \ge 0}$ is a Markov chain if for all $t > 0$
+$$\pi(y_t|y_{1:t-1}) = \pi(y_t|y_{t-1})$$
+where $\pi$ is the probability.
+\end{definition}
+
+This means that all the information about the past is completely carried out in the $Y_t$ at each step. With Markov chains, the joint distribution of observations take a fairly simple form :
+
+$$\pi(y_{1:t}) = \pi(y_1) \cdot \prod_{j=2}^2 \pi(y_j|y_{j-1})$$
 
 \section*{Classical methods}
 In this section, we present classical methods used for time series forecasting.
@@ -45,6 +57,41 @@ $$X_t = \sum_{i=1}^{\infty} \alpha_i X_{t-i} + \epsilon_t$$
 
 With this theorem, it seems natural to use AR$(p)$ models for prediction.
 
+\subsection*{Dynamic Linear Models}
+DLM is a simpler model of a more general framework called state space models. \\
+\begin{definition}{State space model}
+A state space model consist of two time series : a $\mathbb{R}^p$-valued time series $\{\theta_t\}$ and a a $\mathbb{R}^m$-valued time series $\{Y_t\}$ satisfying the following assumptions :
+
+\begin{itemize}
+        \item ($\theta_t$) is a Markov chain
+        \item Conditionnaly on $(\theta_t)$, the $Y_t$'s are independent and the $Y_t$'s depends only on $(\theta_t)$
+\end{itemize}
+
+The idea inder this model is that the seris $Y_t$ is determined by a latent process $\theta_t$. The $\theta_t$'s usually represent all the observable physical variables that have an influence on the variable of interest. For instance, if we try to predict the price of electricity in the future, the latent variables could be the temperature, the wind speed, the sunshine, ... Note that this ($\theta_t$) is assumed to be a Markov chain. \\
+
+In general, a state space model consists in two equations : an \textbf{obvservation equation} which gives $Y_t$ in function of $\theta_t$ at each step and an \textbf{evolution equation} which gives $\theta_t$ in function of $\theta_{t-1}$. Both equations are pertubed by noise. This can be written as
+
+$$Y_t = f_t(\theta_t, v_t)$$
+$$\theta_t = g_t(\theta_{t-1}, w_t)$$
+
+To be complete we also have to specify the prior distribution for $\theta_0$. \\
+
+With that general state space model defined, it is possible to define the DLM which is a special case of it with linear functions and Gaussian noise. \\
+
+\begin{definition}{DLM}
+A dynamic linear model (DLM) is specified by a Normal prior distribution for the p-dimensional state vector at time t = 0,
+$$\theta_0 \sim \mathcal{N}_p(m_0, C_0)$$
+together with a pair of equations for each time $t \ge 1$,
+
+$$Y_t = F_t\theta_t + v_t, \hspace{3cm} v_t \sim \mathcal{N}_m(0, V_t)$$
+$$\theta_t = G_t\theta_{t-1} + w_t, \hspace{3cm} v_t \sim \mathcal{N}_p(0, W_t)$$
+
+where $F_t$ and $G_t$ are known matrices of order $m \times p$ and $p \times p$ respectively.
+\end{definition}
+
+
+
+\end{definition}
 \bibliographystyle{plain}
 \bibliography{references}
 
