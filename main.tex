@@ -60,6 +60,7 @@ With this theorem, it seems natural to use AR$(p)$ models for prediction.
 
 \subsection*{Dynamic Linear Models}
 DLM is a simpler model of a more general framework called state space models. \\
+
 \begin{definition}{State space model}
 A state space model consist of two time series : a $\mathbb{R}^p$-valued time series $\{\theta_t\}$ and a a $\mathbb{R}^m$-valued time series $\{Y_t\}$ satisfying the following assumptions :
 
@@ -67,6 +68,7 @@ A state space model consist of two time series : a $\mathbb{R}^p$-valued time se
         \item ($\theta_t$) is a Markov chain
         \item Conditionnaly on $(\theta_t)$, the $Y_t$'s are independent and the $Y_t$'s depends only on $(\theta_t)$
 \end{itemize}
+\label{statespace}
 \end{definition}
 
 The idea inder this model is that the seris $Y_t$ is determined by a latent process $\theta_t$. The $\theta_t$'s usually represent all the observable physical variables that have an influence on the variable of interest. For instance, if we try to predict the price of electricity in the future, the latent variables could be the temperature, the wind speed, the sunshine, ... Note that this ($\theta_t$) is assumed to be a Markov chain. \\
@@ -123,11 +125,52 @@ where $e_t = Y_t-f_t$ is the forecast error.
 
 \end{enumerate}
 
+\end{theorem}
+
 This theorem gives us everything we need to predict the behaviour of the observations for a time series modeled by a DLM. \\
 
 It can be seen that the complexity of this algorithm is $\mathcal{O}(kn^2T + k^3T)$.
+This rather high complexity can become prohibitive when dealing with high-dimensional data. For instance, it is noted in \cite{TRMF} that using a common package in $R$ for DLM, problems with $n \ge 32$ cannot be solved. \\
 
-\end{theorem}
+Another problem with the two classical methods that we have described is that it is not clear how missing data would be dealed with. Yet, missing data are common in many application involving time series and can be due to occlusions or misfunction of sensor, among others. \\
+
+We will now present the novel approach to make predictions about high-dimensional time series published in \cite{TRMF}.
+
+\section{Temporal Regularized Matrix Factorization}
+This section aims to describe the method developed in \cite{TRMF}. \\
+
+\subsection*{Framework}
+The authors place themselves in a framework similar to the state space model defined in definition \ref{statespace}.
+The difference is that here $\theta$ is not supposed to respect the Markov property. Moreoveer, the observation equation is assumed to be linear.
+Formally, this can be described by the following equations :
+
+\begin{equation}
+\mathbf{y}_t = F\mathbf{x}_t + \eta_t
+\end{equation}
+\begin{equation}
+\mathbf{x}_t = M_{\Theta}(\{\mathbf{x}_{t-l} : l \in \mathcal{L} \}) + \epsilon_t
+\label{eq:evol}
+\end{equation}
+
+The vector noise $\eta_t$ and $\epsilon_t$ are supposed to be Gaussian. These equations are parametrized by sets : $\mathcal{L}$ that contains the number of previous state vectors on wich $\mathbf{x}_t$ depends and $\Theta$ that contains the weights associated to each vector in time.
+
+\subsection*{Matrix factorization formulation}
+The primary obsevation made by the authors is that when we stack all $\mathbf{x}_t$ in a matrix $X$ and if we do the same with the $\mathbf{y}_t$ in the matrix $Y$, we can see that $Y \approx FX$. Of course, noise has been omitted in this equation and this is why it is not an equality. \\
+
+With this observation, our problem becomes a problem of matrix factorization which has been widely studied in the past. For instance, this is a key element in some recommender systems and the use of matrix factorization in this context to perform machine learning has been used in the well-known Netflix prize in 2007.
+In the context of the Netflix prize, the incomplete matrix of ratings was decomposed into a matrix for the users and a matrix for the items. Those two matrices were learned by minimizing an mean square error on the data. \\
+
+A similar approach can be used in our context. If we denote by $\mathbf{f}_i^\top$ the i$^\text{th}$ row of the matrix F and by $\Omega$ the set of observed entries, we could learn the $X$ and $F$ factors as
+
+$$\underset{F,X}{\text{min}} \sum_{(i,t) \in \Omega} (Y_{it} - \mathbf{f}_i^\top\mathbf{x}_t)^2 + \lambda_f \mathcal{R}_f(F) + \lambda_x \mathcal{R}_x(X)$$
+
+where $\mathcal{R}_f(F)$ and $\mathcal{R}_x(X)$ are regularization factors on $F$ and $X$ respectively. These factors are important to prevent overfitting and to take into accounts possible dependecies between the different entries of the matrices. \\
+The link that has just been established between the general framework and matrix factorization approaches is important but it still does not tell us how to use equation \ref{eq:evol} to account for the temporal dependencies. We also need to ddescribe how forecasting could take place in this framework. \\
+In classical MF applications like the one mentionned earlier for recommender systems, the regularization factors are often taken as the norm of the matrix (for example the Frobenius norm) to penalize high values of the larned elements. However, here, this choice would not be a good idea as it would not take into account the temporal dependecies that naturally exists in the $\mathbf{x}_t$s. In \cite{TRMF}, the authors propose a choice of regularization factors which remdies that problem.
+
+\section{Temporal regularization}
+
+The goal in this section is to ddescribe a choice of regulization factor that is called $\mathcal{T}_M(X | \Theta)$ that will promote the relationship between the $\mathbf{x}_t$s given in (\ref{eq:evol}). 
 
 \bibliographystyle{plain}
 \bibliography{references}
