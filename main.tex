@@ -24,6 +24,7 @@ A time series is thus a realization of a stochastic process which can be seen as
 
 We also define here a property of a stochastic process that will be useful later : the Markow property. \\
 
+\theoremstyle{definition}
 \begin{definition}{Markov property}
 We say that $(Y_t)_{t \ge 0}$ is a Markov chain if for all $t > 0$
 $$\pi(y_t|y_{1:t-1}) = \pi(y_t|y_{t-1})$$
@@ -66,6 +67,7 @@ A state space model consist of two time series : a $\mathbb{R}^p$-valued time se
         \item ($\theta_t$) is a Markov chain
         \item Conditionnaly on $(\theta_t)$, the $Y_t$'s are independent and the $Y_t$'s depends only on $(\theta_t)$
 \end{itemize}
+\end{definition}
 
 The idea inder this model is that the seris $Y_t$ is determined by a latent process $\theta_t$. The $\theta_t$'s usually represent all the observable physical variables that have an influence on the variable of interest. For instance, if we try to predict the price of electricity in the future, the latent variables could be the temperature, the wind speed, the sunshine, ... Note that this ($\theta_t$) is assumed to be a Markov chain. \\
 
@@ -78,6 +80,7 @@ To be complete we also have to specify the prior distribution for $\theta_0$. \\
 
 With that general state space model defined, it is possible to define the DLM which is a special case of it with linear functions and Gaussian noise. \\
 
+\theoremstyle{definition}
 \begin{definition}{DLM}
 A dynamic linear model (DLM) is specified by a Normal prior distribution for the p-dimensional state vector at time t = 0,
 $$\theta_0 \sim \mathcal{N}_p(m_0, C_0)$$
@@ -89,9 +92,43 @@ $$\theta_t = G_t\theta_{t-1} + w_t, \hspace{3cm} v_t \sim \mathcal{N}_p(0, W_t)$
 where $F_t$ and $G_t$ are known matrices of order $m \times p$ and $p \times p$ respectively.
 \end{definition}
 
+\subsubsection*{Forecasting}
 
+Based on this model, how can we predict the future observation ? The problem is solved by use of the \textbf{Kalman filter}. This filter is based on the idea that, due to the markovian property of the state vector and the assumption of conditional independence of the observations, the density of the state and the observation knowing their previous values can be computed recursively. Moreover, because the equations are linear and the noise and prior distribution are Gaussian, it is possible to prove that the random vector $(\theta_0, ..., \theta_t, Y_0, ..., Y_t)$ follows a mutlivariate Gaussian distribution. Therefore, only the mean and covariance matrix has to be computed. The Kalman filter gives the recursion equation for them : \\
 
-\end{definition}
+\begin{theorem}
+Let $\mathcal{D}_t$ be the information provided by the first $t$ observations $Y_1, ..., Y_t$.
+Then, if
+$$\theta_{t-1} \sim \mathcal{N}(m_{t-1}, C_{t-1}),$$
+where $t \ge 1$, then
+
+\begin{enumerate}[(a)]
+
+\item the one-step-ahead predictive density of $\theta_t$ given $\mathcal{D}_{t-1}$ is Gaussian with parameters
+
+$$a_t = E(\theta_t|\mathcal{D}_{t-1}) = G_tm_{t-1}$$
+$$R_t = \text{Var}(\theta_t|\mathcal{D}_{t-1}) = G_tC_{t-1}G_t' + W_t$$
+
+\item the one-step-ahead predictive density of $Y_t$ given $\mathcal{D}_{t-1}$ is Gaussian with parameters
+
+$$f_t = E(Y_t|\mathcal{D}_{t-1}) = F_ta_t$$
+$$Q_t = \text{Var}(Y_t|\mathcal{D}_{t-1}) = F_tR_tF_t' + V_t$$
+
+\item the filtering density of $\theta_t$ given $\mathcal{D}_t$ is Gaussian with parameters
+
+$$m_t = E(\theta_t|\mathcal{D}_{t}) = a_t + R_tF_t'Q_t^{-1}e_t$$
+$$C_t = \text{Var}(\theta_t|\mathcal{D}_{t}) = R_t - R_tF_t'Q_t^{-1}F_tR_t$$
+
+where $e_t = Y_t-f_t$ is the forecast error.
+
+\end{enumerate}
+
+This theorem gives us everything we need to predict the behaviour of the observations for a time series modeled by a DLM. \\
+
+It can be seen that the complexity of this algorithm is $\mathcal{O}(kn^2T + k^3T)$.
+
+\end{theorem}
+
 \bibliographystyle{plain}
 \bibliography{references}
 
