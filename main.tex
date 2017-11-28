@@ -35,26 +35,29 @@ This means that all the information about the past is completely carried out in 
 
 $$\pi(y_{1:t}) = \pi(y_1) \cdot \prod_{j=2}^2 \pi(y_j|y_{j-1})$$
 
-\section*{Classical methods}
+\section{Classical methods}
 In this section, we present classical methods used for time series forecasting.
 These classical methods include AR (autoregressive) models and DLM (dynamic linear models) and are used for prediction.
 Let us explain sequentially these models.
 
 \subsection*{Autoregressive models}
 As explained in \cite{pmlr-v37-anava15}, the idea of this model is to represent each observation as a noisy linear combination of previous observations.
-Formally, if $X_t$ is the measurement at time $t$, the AR(p) model prametrized by the lag $p$ and the coefficient vector $\alpha \in \mathbb{R}^p$ can be written as
+Formally, let $\mathcal{L}$ be the set of time indices that encodes the dependence between the observations over time. If $\mathbf{x}_t \in \mathbb{R}^k$ is the measurement at time $t$ and if the lag $|\mathcal{L}| = p$, the AR(p) model prametrized by the coefficient matrix $\mathcal{W} = \{W^{(l)} \in \mathbb{R}^{k \times k} : l \in \mathcal{L} \}$ can be written as
 
-$$X_t = \sum_{k=1}^p \alpha_k X_{t-k} + \epsilon_t$$
+\begin{equation}
+\mathbf{x}_t = \sum_{l \in \mathcal{L}} W^{(l)} \mathbf{x}_{t-l} + \epsilon_t
+\label{eq:ar}
+\end{equation}
 
-where $\{ \epsilon_t \}_t \in \mathbb{Z}$ is a white noise.
+where $\{ \epsilon_t \}_{t \in \mathbb{Z}}$ is a Gaussian noise vector with for simplicity $\epsilon_t \sim \mathcal{N}(0, \sigma^2 I_k)$.
 
 This moedel is motivated by a thorem due to Wold that states that a stationary process can be represented by a MA($\infty$) model, that is
 
-$$X_t = \sum_{i=1}^{\infty} \beta_i \epsilon_{t-i} + \epsilon_t$$
+$$\mathbf{x}_t = \sum_{i=1}^{\infty} \beta_i \epsilon_{t-i} + \epsilon_t$$
 
-where $\sum_{i=1}^\infty \beta_i < \infty$ and $\{\epsilon_t\}_{t \in \mathbb{Z}}$ have zero mean and equal variance. And if $\{ X_t \}_t^\infty$ is invertible, we also have that it can be represented by an AR$(\infty)$ model, that is
+where $\sum_{i=1}^\infty \beta_i < \infty$. And if $\{ \mathbf{x}_t \}_t^\infty$ is invertible, we also have that it can be represented by an AR$(\infty)$ model, that is
 
-$$X_t = \sum_{i=1}^{\infty} \alpha_i X_{t-i} + \epsilon_t$$
+$$\mathbf{x}_t = \sum_{i=1}^{\infty} \alpha_i \mathbf{x}_{t-i} + \epsilon_t$$
 
 With this theorem, it seems natural to use AR$(p)$ models for prediction.
 
@@ -62,66 +65,66 @@ With this theorem, it seems natural to use AR$(p)$ models for prediction.
 DLM is a simpler model of a more general framework called state space models. \\
 
 \begin{definition}{State space model}
-A state space model consist of two time series : a $\mathbb{R}^p$-valued time series $\{\theta_t\}$ and a a $\mathbb{R}^m$-valued time series $\{Y_t\}$ satisfying the following assumptions :
+A state space model consist of two time series : a $\mathbb{R}^p$-valued time series $\{\mathbf{x}_t\}$ and a a $\mathbb{R}^m$-valued time series $\{\mathbf{y}_t\}$ satisfying the following assumptions :
 
 \begin{itemize}
-        \item ($\theta_t$) is a Markov chain
-        \item Conditionnaly on $(\theta_t)$, the $Y_t$'s are independent and the $Y_t$'s depends only on $(\theta_t)$
+        \item ($\mathbf{x}_t$) is a Markov chain
+        \item Conditionnaly on $(\mathbf{x}_t)$, the $\mathbf{y}_t$'s are independent and the $\mathbf{y}_t$'s depends only on $(\mathbf{x}_t)$
 \end{itemize}
 \label{statespace}
 \end{definition}
 
-The idea inder this model is that the seris $Y_t$ is determined by a latent process $\theta_t$. The $\theta_t$'s usually represent all the observable physical variables that have an influence on the variable of interest. For instance, if we try to predict the price of electricity in the future, the latent variables could be the temperature, the wind speed, the sunshine, ... Note that this ($\theta_t$) is assumed to be a Markov chain. \\
+The idea behind this model is that the seris $\mathbf{y}_t$ is determined by a latent process $\mathbf{x}_t$. The $\mathbf{x}_t$'s usually represent all the observable physical variables that have an influence on the variable of interest. For instance, if we try to predict the price of electricity in the future, the latent variables could be the temperature, the wind speed, the sunshine, ... Note that this ($\mathbf{x}_t$) is assumed to be a Markov chain. \\
 
-In general, a state space model consists in two equations : an \textbf{obvservation equation} which gives $Y_t$ in function of $\theta_t$ at each step and an \textbf{evolution equation} which gives $\theta_t$ in function of $\theta_{t-1}$. Both equations are pertubed by noise. This can be written as
+In general, a state space model consists in two equations : an \textbf{obvservation equation} which gives $\mathbf{y}_t$ in function of $\mathbf{x}_t$ at each step and an \textbf{evolution equation} which gives $\mathbf{x}_t$ in function of $\mathbf{x}_{t-1}$. Both equations are pertubed by noise. This can be written as
 
-$$Y_t = f_t(\theta_t, v_t)$$
-$$\theta_t = g_t(\theta_{t-1}, w_t)$$
+$$\mathbf{y}_t = f_t(\mathbf{x}_t, v_t)$$
+$$\mathbf{x}_t = g_t(\mathbf{x}_{t-1}, w_t)$$
 
-To be complete we also have to specify the prior distribution for $\theta_0$. \\
+To be complete we also have to specify the prior distribution for $\mathbf{x}_0$. \\
 
 With that general state space model defined, it is possible to define the DLM which is a special case of it with linear functions and Gaussian noise. \\
 
 \theoremstyle{definition}
 \begin{definition}{DLM}
 A dynamic linear model (DLM) is specified by a Normal prior distribution for the p-dimensional state vector at time t = 0,
-$$\theta_0 \sim \mathcal{N}_p(m_0, C_0)$$
+$$\mathbf{x}_0 \sim \mathcal{N}_p(m_0, C_0)$$
 together with a pair of equations for each time $t \ge 1$,
 
-$$Y_t = F_t\theta_t + v_t, \hspace{3cm} v_t \sim \mathcal{N}_m(0, V_t)$$
-$$\theta_t = G_t\theta_{t-1} + w_t, \hspace{3cm} v_t \sim \mathcal{N}_p(0, W_t)$$
+$$\mathbf{y}_t = F_t\mathbf{x}_t + v_t, \hspace{3cm} v_t \sim \mathcal{N}_m(0, V_t)$$
+$$\mathbf{x}_t = G_t\mathbf{x}_{t-1} + w_t, \hspace{3cm} v_t \sim \mathcal{N}_p(0, W_t)$$
 
 where $F_t$ and $G_t$ are known matrices of order $m \times p$ and $p \times p$ respectively.
 \end{definition}
 
 \subsubsection*{Forecasting}
 
-Based on this model, how can we predict the future observation ? The problem is solved by use of the \textbf{Kalman filter}. This filter is based on the idea that, due to the markovian property of the state vector and the assumption of conditional independence of the observations, the density of the state and the observation knowing their previous values can be computed recursively. Moreover, because the equations are linear and the noise and prior distribution are Gaussian, it is possible to prove that the random vector $(\theta_0, ..., \theta_t, Y_0, ..., Y_t)$ follows a mutlivariate Gaussian distribution. Therefore, only the mean and covariance matrix has to be computed. The Kalman filter gives the recursion equation for them : \\
+Based on this model, how can we predict the future observation ? The problem is solved by use of the \textbf{Kalman filter}. This filter is based on the idea that, due to the markovian property of the state vector and the assumption of conditional independence of the observations, the density of the state and the observation knowing their previous values can be computed recursively. Moreover, because the equations are linear and the noise and prior distribution are Gaussian, it is possible to prove that the random vector $(\mathbf{x}_0, ..., \mathbf{x}_t, \mathbf{y}_0, ..., \mathbf{y}_t)$ follows a mutlivariate Gaussian distribution. Therefore, only the mean and covariance matrix has to be computed. The Kalman filter gives the recursion equation for them : \\
 
 \begin{theorem}
-Let $\mathcal{D}_t$ be the information provided by the first $t$ observations $Y_1, ..., Y_t$.
+Let $\mathcal{D}_t$ be the information provided by the first $t$ observations $\mathbf{y}_1, ..., \mathbf{y}_t$.
 Then, if
-$$\theta_{t-1} \sim \mathcal{N}(m_{t-1}, C_{t-1}),$$
+$$\mathbf{x}_{t-1} \sim \mathcal{N}(m_{t-1}, C_{t-1}),$$
 where $t \ge 1$, then
 
 \begin{enumerate}[(a)]
 
-\item the one-step-ahead predictive density of $\theta_t$ given $\mathcal{D}_{t-1}$ is Gaussian with parameters
+\item the one-step-ahead predictive density of $\mathbf{x}_t$ given $\mathcal{D}_{t-1}$ is Gaussian with parameters
 
-$$a_t = E(\theta_t|\mathcal{D}_{t-1}) = G_tm_{t-1}$$
-$$R_t = \text{Var}(\theta_t|\mathcal{D}_{t-1}) = G_tC_{t-1}G_t' + W_t$$
+$$a_t = E(\mathbf{x}_t|\mathcal{D}_{t-1}) = G_tm_{t-1}$$
+$$R_t = \text{Var}(\mathbf{x}_t|\mathcal{D}_{t-1}) = G_tC_{t-1}G_t' + W_t$$
 
 \item the one-step-ahead predictive density of $Y_t$ given $\mathcal{D}_{t-1}$ is Gaussian with parameters
 
-$$f_t = E(Y_t|\mathcal{D}_{t-1}) = F_ta_t$$
-$$Q_t = \text{Var}(Y_t|\mathcal{D}_{t-1}) = F_tR_tF_t' + V_t$$
+$$f_t = E(\mathbf{y}_t|\mathcal{D}_{t-1}) = F_ta_t$$
+$$Q_t = \text{Var}(\mathbf{y}_t|\mathcal{D}_{t-1}) = F_tR_tF_t' + V_t$$
 
-\item the filtering density of $\theta_t$ given $\mathcal{D}_t$ is Gaussian with parameters
+\item the filtering density of $\mathbf{x}_t$ given $\mathcal{D}_t$ is Gaussian with parameters
 
-$$m_t = E(\theta_t|\mathcal{D}_{t}) = a_t + R_tF_t'Q_t^{-1}e_t$$
-$$C_t = \text{Var}(\theta_t|\mathcal{D}_{t}) = R_t - R_tF_t'Q_t^{-1}F_tR_t$$
+$$m_t = E(\mathbf{x}_t|\mathcal{D}_{t}) = a_t + R_tF_t'Q_t^{-1}e_t$$
+$$C_t = \text{Var}(\mathbf{x}_t|\mathcal{D}_{t}) = R_t - R_tF_t'Q_t^{-1}F_tR_t$$
 
-where $e_t = Y_t-f_t$ is the forecast error.
+where $e_t = \mathbf{y}_t-f_t$ is the forecast error.
 
 \end{enumerate}
 
@@ -141,7 +144,7 @@ This section aims to describe the method developed in \cite{TRMF}. \\
 
 \subsection*{Framework}
 The authors place themselves in a framework similar to the state space model defined in definition \ref{statespace}.
-The difference is that here $\theta$ is not supposed to respect the Markov property. Moreoveer, the observation equation is assumed to be linear.
+The difference is that here $\mathbf{x}$ is not supposed to respect the Markov property. Moreover, the observation equation is assumed to be linear.
 Formally, this can be described by the following equations :
 
 \begin{equation}
@@ -162,7 +165,10 @@ In the context of the Netflix prize, the incomplete matrix of ratings was decomp
 
 A similar approach can be used in our context. If we denote by $\mathbf{f}_i^\top$ the i$^\text{th}$ row of the matrix F and by $\Omega$ the set of observed entries, we could learn the $X$ and $F$ factors as
 
-$$\underset{F,X}{\text{min}} \sum_{(i,t) \in \Omega} (Y_{it} - \mathbf{f}_i^\top\mathbf{x}_t)^2 + \lambda_f \mathcal{R}_f(F) + \lambda_x \mathcal{R}_x(X)$$
+\begin{equation}
+\underset{F,X}{\text{min}} \sum_{(i,t) \in \Omega} (Y_{it} - \mathbf{f}_i^\top\mathbf{x}_t)^2 + \lambda_f \mathcal{R}_f(F) + \lambda_x \mathcal{R}_x(X)
+\label{eq:model}
+\end{equation}
 
 where $\mathcal{R}_f(F)$ and $\mathcal{R}_x(X)$ are regularization factors on $F$ and $X$ respectively. These factors are important to prevent overfitting and to take into accounts possible dependecies between the different entries of the matrices. \\
 The link that has just been established between the general framework and matrix factorization approaches is important but it still does not tell us how to use equation \ref{eq:evol} to account for the temporal dependencies. We also need to ddescribe how forecasting could take place in this framework. \\
@@ -170,7 +176,76 @@ In classical MF applications like the one mentionned earlier for recommender sys
 
 \section{Temporal regularization}
 
-The goal in this section is to ddescribe a choice of regulization factor that is called $\mathcal{T}_M(X | \Theta)$ that will promote the relationship between the $\mathbf{x}_t$s given in (\ref{eq:evol}). 
+The goal in this section is to ddescribe a choice of regulization factor that is called $\mathcal{T}_M(X | \Theta)$ that will promote the relationship between the $\mathbf{x}_t$s given in (\ref{eq:evol}).
+Recall that $\Theta$ in our model contains the information that links the $\mathbf{x}_t$s together. The idea proposed is to take the log-likelihood of the $\mathbf{x}_t$s knowing $\Theta$. This is formalized by the following equation :
+
+$$\mathcal{T}_M(X | \Theta) = -\log{\mathbb{P}(\mathbf{x}_1, ..., \mathbf{x}_T|\Theta)}$$
+
+It can be seen that the lower this factor is, the more plausible it is to observe this set of $\mathbf{x}_t$s according to (\ref{eq:evol}). Note that the logarithm in this equation is there for computational reasons only. If $\Theta$ is given, then we can use directly $\mathcal{T}_M(X | \Theta)$ as the regularization factor for $X$. When it is not given, a regularization for $\Theta$ should be added to \ref{eq:model} which becomes
+
+\begin{equation}
+\underset{F,X,\Theta}{\text{min}} \sum_{(i,t) \in \Omega} (Y_{it} - \mathbf{f}_i^\top\mathbf{x}_t)^2 + \lambda_f \mathcal{R}_f(F) + \lambda_x \mathcal{T}_M(X | \Theta) + \lambda_{\theta} R_{\theta}(\Theta)
+\label{eq:model_theta}
+\end{equation}
+
+It is important to note that with this formulation, $\Theta$ can thus be learned from the data like $F$ and $X$. This is another important avantage that TRMF has compared to other approaches like graph-based regularization.
+Once $\Theta$ is learned, we can use it in our model and use equation (\ref{eq:evol}) to predict that next latent vector $\mathbf{x}_t$, which can in turn be used to predict $\mathbf{y}_t$ as $F\mathbf{x}_t$. \\
+Another feature that was missing from the classical method was the possibility to deal missing entries. With the TRMF technique, we can simply estimate the missing entries of $Y$ as $Y_{it} = \mathbf{f}_i^\top\mathbf{x}_t$.
+This is one big advantage of matrix factirization and it is central to many of its application like recommender systems. \\
+Finally, the MF framework can also be used to perform clustering. Again, this is similar to what has already been proposed in classical use of MF. The $\mathbf{f}_i$ vector can be interpreted as the latent embedding factor of the $i^\text{th}$ time series in $Y$ and thus clusering algorithms can directly be applied to these vectors.
+
+\subsection*{Extensions}
+This general TRMF framework can be conveniently extended to account for different aplications dependent extensions. In this section, we prensent $3$ useful ones.
+
+\subsubsection*{Known fetures}
+In the classical machine leaning framework, every item is associated with a time invariant feature vector. In the study of time series, it is common that in addition to the time dependent data, some known features are available on the objects and it is important to be able to incorporate them in the model to improve performances. Our TRMF framework can be easily extended to account for this additional feature vector for item $i$ denoted $\mathbf{a}_i$ as follows :
+
+\begin{equation}
+\underset{F,X,\Theta}{\text{min}} \sum_{(i,t) \in \Omega} (Y_{it} - \mathbf{a}_i^\top F \mathbf{x}_t)^2 + \lambda_f \mathcal{R}_f(F) + \lambda_x \mathcal{T}_M(X | \Theta) + \lambda_{\theta} R_{\theta}(\Theta)
+\label{eq:model_feature}
+\end{equation}
+
+This formulation has two main advantages :
+\begin{itemize}
+\item A new time series $Y_{i't}$ can know be estimated without knowledge of any additional observation up to time $T$. We can simply and directily estimate it as $Y_{i't} = \mathbf{a}_i'^\top F \mathbf{x}_t$ if the feature vector is available
+\item If $\mathbf{a}_i \in \mathbb{R}^d$, this has also the effect of reducing the dimensions of $F$ from $n \times k$ to $d \times k$ which can improve the efiiciency of the algorithm.
+\end{itemize}
+
+\subsubsection*{Graph information among time series}
+Sometimes, a graph based information is available on the time series. This graph encodes relationship between them. The goal is to define a regularization on $F$ that will tend to promote the structure defined by the graph.
+Given a graph $G$ on the time series with weights $G_{ij}$ on the edge $i-j$, we can take the following graph regularization factor :
+$$\mathcal{G}(F|G,\eta) = \frac{1}{2}\sum_{i\sim j}G_{ij}\|\mathbf{f}_i - \mathbf{f}_j\| + \frac{\eta}{2}\sum_i \|\mathbf{f}_i\|$$
+
+Our problem then becomes simply :
+
+\begin{equation}
+\underset{F,X,\Theta}{\text{min}} \sum_{(i,t) \in \Omega} (Y_{it} - \mathbf{f}_i^\top\mathbf{x}_t)^2 + \lambda_f \mathcal{G}(F|G,\eta) + \lambda_x \mathcal{T}_M(X | \Theta) + \lambda_{\theta} R_{\theta}(\Theta)
+\label{eq:model_graph}
+\end{equation}
+
+\subsubsection*{Temporal-regularized tensor factorization}
+It is also possible to extend our framework to tensor factorization with evolution over time. To take again the example of recommender system, it is sometimes useful to model the variation over time of the preferences of a user or to model some kind of fashion effect associated to a movie. In the classial MF framework, we thus incorporate time labelled data. If $P$ denotes the matrix of latent enbeddings of the users and $Q$ of the movies, our model can be extended as :
+
+\begin{equation}
+\underset{P,Q,X,\Theta}{\text{min}} \sum_{(i,j,t) \in \Omega} (Y_{ijt} - \langle \mathbf{p}_i,\mathbf{q}_j,\mathbf{x}_t \rangle )^2 + \lambda_p \mathcal{R}_p(P) + \lambda_q \mathcal{R}_q(Q) + \lambda_x \mathcal{T}_M(X | \Theta) + \lambda_{\theta} R_{\theta}(\Theta)
+\label{eq:model_tensor}
+\end{equation}
+
+where $\langle \mathbf{p}_i,\mathbf{q}_j,\mathbf{x}_t \rangle$ is defined as $\sum_r p_{ir}q_{jr}x_{tr}$
+
+\subsection*{Autoregressive Temporal Regularization}
+TRMF have been described until here using a very general evolution equation (\ref{eq:evol}). In this section, we will apply the TRMF framework on a auroregressive model for the latent embeddings. Let us recall equation (\ref{eq:ar}) which defines the AR model for the time series $\mathbf{x}_t$ parametrized by the lag set $\mathcal{L}$ and the weights $W^{(l)}$ :
+$$\mathbf{x}_t = \sum_{l \in \mathcal{L}} W^{(l)} \mathbf{x}_{t-l} + \epsilon_t$$
+
+We would like to define a regularization factor on $X$ that promotes this model for the $\mathbf{x}_t$. A natural choice would be the following :
+
+$$\mathcal{T}_{AR}(X|\mathcal{L}, \mathcal{W}, \eta) = \frac{1}{2} \sum_{t=m}^T \norm{\mathbf{x}_t - \sum_{l \in \mathcal{L}} W^{(l)} \mathbf{x}_{t-l}}^2 + \frac{\eta}{2} \sum_t \|\mathbf{x}_t\|^2$$
+
+where $m := 1+\text{max}(\mathcal{L})$ and the last term has been added to ensure strong convexity. \\
+As explained previously, the TRMF framework allows us to learn the weight matrices $W^{(l)}$ when they are not known. However, as $W^{(l)} \in \mathbb{R}^{k \times k}$, the number of weights to be learned would be $|\mathcal{L}|k^2$ which can be large and lead to overfitting. We could reduce the amount of weights by assuming that the $W^{(l)}$ are diagonal. This reduces the number of weights to $|\mathcal{L}|k$.
+This correseponds to assuming that each element of the observation vector $\mathbf{y}_t$ is only influenced by the corresponding elements in the observations $\{\mathbf{y}_{t-l}\}_{l \in \mathcal{L}}$
+
+
 
 \bibliographystyle{plain}
 \bibliography{references}
