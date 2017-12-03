@@ -5,7 +5,7 @@
 \title{LINMA 2120 - Seminars in Applied Mathematics \\
         High dimensional time-series prediction with missing values}
 \author{Quentin Lété}
-\date{November 2017}
+\date{December 4th, 2017}
 
 \begin{document}
 
@@ -21,7 +21,7 @@ With the increasing computational power provided by modern computers, people hav
 In a lot of applications, this data vary with time.
 This is the case for the notions of price, consumption and production that are central to every market.
 But this can be also the case for physical phenomenon, like the weather.
-Time-series analysis is the field that studies processes involving this kind of data. \\
+Time series analysis is the field that studies processes involving this kind of data. \\
 In this work, we will give an overview of methods used to make predictions about time series.
 We will particularly focus on methods that can recover missing values and that can deal with large-scale data.\\
 
@@ -29,8 +29,8 @@ This report will be organised as follows :
 \begin{itemize}
 \item Section \ref{prem} will give the main definitions and notations used in the rest of the report.
 \item Section \ref{clas} will present the classical methods used in time-series modelling, i.e. autoregressive models and dynamic linear models.
-\item Section \ref{sec:trmf} will develop the Temporal Regularization Matrix Factorization method proposed by Yu et al. (\cite{TRMF}).
-\item Section \ref{over} will give an overview of the paper that cite \cite{TRMF}.
+\item Section \ref{sec:trmf} will develop the Temporal Regularized Matrix Factorization method proposed by Yu et al. (\cite{TRMF}).
+\item Section \ref{over} will give an overview of the papers that cite \cite{TRMF}.
 \item Section \ref{app} will develop a particular application of time series forecasting in more details.
 \item Section \ref{dl} will develop another class of methods popular for prediction : deep learning methods.
 \item Section \ref{conc} will give the final comments of the report.
@@ -47,18 +47,18 @@ A time series is a sequence of data indexed by the time.
 
 A time series is thus a realization of a stochastic process which can be seen as a family of random variables indexed by the time. \\
 
-We also define here a property of a stochastic process that will be useful later : the Markow property. \\
+We also define here a property of a stochastic process that will be useful later : the Markov property. \\
 
 \theoremstyle{definition}
 \begin{definition}{Markov property}
 We say that $(Y_t)_{t \ge 0}$ is a Markov chain if for all $t > 0$
-$$\pi(y_t|y_{1:t-1}) = \pi(y_t|y_{t-1})$$
+$$\pi(Y_t|Y_{1:t-1}) = \pi(Y_t|Y_{t-1})$$
 where $\pi$ is the probability.
 \end{definition}
 
 This means that all the information about the past is completely carried out in the $Y_t$ at each step. With Markov chains, the joint distribution of observations take a fairly simple form :
 
-$$\pi(y_{1:t}) = \pi(y_1) \cdot \prod_{j=2}^2 \pi(y_j|y_{j-1})$$
+$$\pi(Y_{1:t}) = \pi(Y_1) \cdot \prod_{j=2}^2 \pi(Y_j|Y_{j-1})$$
 
 \subsection*{Notation}
 
@@ -90,20 +90,26 @@ Formally, let $\mathcal{L}$ be the set of time indices that encodes the dependen
 \label{eq:ar}
 \end{equation}
 
-where $\{ \epsilon_t \}_{t \in \mathbb{Z}}$ is a Gaussian noise vector with for simplicity $\epsilon_t \sim \mathcal{N}(0, \sigma^2 I_k)$.
+where $\{ \epsilon_t \}_{t \in \mathbb{Z}}$ is a Gaussian noise vector. For simplicity, we will suppose that $\epsilon_t \sim \mathcal{N}(0, \sigma^2 I_k)$.
 
-This moedel is motivated by a thorem due to Wold that states that a stationary process can be represented by a Moving Average MA($\infty$) model, that is
+This moedel is motivated by a theorem due to Wold that states that a stationary process can be represented by a MA($\infty$) model, that is
 
 $$\mathbf{x}_t = \sum_{i=1}^{\infty} \beta_i \epsilon_{t-i} + \epsilon_t$$
 
-where $\sum_{i=1}^\infty \beta_i < \infty$. And if $\{ \mathbf{x}_t \}_t^\infty$ is invertible, we also have that it can be represented by an AR$(\infty)$ model, that is
+where $\sum_{i=1}^\infty \beta_i < \infty$ and where MA stands for Moving Average. And if $\{ \mathbf{x}_t \}_t^\infty$ is invertible, we also have that it can be represented by an AR$(\infty)$ model, that is
 
 $$\mathbf{x}_t = \sum_{i=1}^{\infty} \alpha_i \mathbf{x}_{t-i} + \epsilon_t$$
 
-With this theorem, it seems natural to use AR$(p)$ models for prediction.
+With this theorem, it seems natural to use AR$(p)$ models for prediction. \\
+
+Another popular model in this class is the ARMA (Autoregressive Moving Average) model that is simply a combination of the two previous ones. It can be written as
+
+$$\mathbf{x}_t + \sum_{l \in \mathcal{L}} W^{(l)} \mathbf{x}_{t-l} = \sum_{i=1}^{K} \alpha_i \mathbf{x}_{t-i} + \epsilon_t$$
+
+This in turn is the basis for more complicated models like ARMAX that accounts for exogeneous input or ARIMA that extends ARMA to deal with non-stationary processes.
 
 \subsection*{Dynamic Linear Models}
-DLM is a simpler model of a more general framework called state space models. \\
+DLM is a simpler model of a more general framework called state space models \cite{DLMR}. \\
 
 \begin{definition}{State space model}
 A state space model consist of two time series : a $\mathbb{R}^p$-valued time series $\{\mathbf{x}_t\}$ and a a $\mathbb{R}^m$-valued time series $\{\mathbf{y}_t\}$ satisfying the following assumptions :
@@ -182,7 +188,6 @@ We will now present the novel approach to make predictions about high-dimensiona
 
 \section{Temporal Regularized Matrix Factorization}
 \label{sec:trmf}
-This section aims to describe the method developed in \cite{TRMF}. \\
 
 \subsection*{Framework}
 The authors place themselves in a framework similar to the state space model defined in definition \ref{statespace}.
@@ -197,13 +202,13 @@ Formally, this can be described by the following equations :
 \label{eq:evol}
 \end{equation}
 
-The vector noise $\eta_t$ and $\epsilon_t$ are supposed to be Gaussian. These equations are parametrized by sets : $\mathcal{L}$ that contains the number of previous state vectors on wich $\mathbf{x}_t$ depends and $\Theta$ that contains the weights associated to each vector in time.
+The vector noise $\eta_t$ and $\epsilon_t$ are supposed to be Gaussian. These equations are parametrized by two sets : $\mathcal{L}$ that contains the number of previous state vectors on wich $\mathbf{x}_t$ depends and $\Theta$ that contains the weights associated to each vector in time.
 
 \subsection*{Matrix factorization formulation}
 The primary obsevation made by the authors is that when we stack all $\mathbf{x}_t$ in a matrix $X$ and if we do the same with the $\mathbf{y}_t$ in the matrix $Y$, we can see that $Y \approx FX$. Of course, noise has been omitted in this equation and this is why it is not an equality. We notice that this idea enables to do at the same time interpolation and imputation, as defined above. \\
 
-With this observation, our problem becomes a problem of matrix factorization which has been widely studied in the past. For instance, this is a key element in some recommender systems and the use of matrix factorization in this context to perform machine learning has been used in the well-known Netflix prize in 2007.
-In the context of the Netflix prize, the incomplete matrix of ratings was decomposed into a matrix for the users and a matrix for the items. Those two matrices were learned by minimizing an mean square error on the data. \\
+With this observation, our problem becomes a problem of matrix factorization which has been widely studied in the past. For instance, this is a key element in some recommender systems and the use of matrix factorization in this context to perform machine learning has been used during the Netflix prize in 2007.
+In the context of the Netflix prize, the incomplete matrix of ratings was decomposed into a matrix for the users and a matrix for the items. Those two matrices were learned by minimizing a mean square error on the data. \\
 
 A similar approach can be used in our context. If we denote by $\mathbf{f}_i^\top$ the i$^\text{th}$ row of the matrix F and by $\Omega$ the set of observed entries, we could learn the $X$ and $F$ factors as
 
@@ -213,12 +218,12 @@ A similar approach can be used in our context. If we denote by $\mathbf{f}_i^\to
 \end{equation}
 
 where $\mathcal{R}_f(F)$ and $\mathcal{R}_x(X)$ are regularization factors on $F$ and $X$ respectively. These factors are important to prevent overfitting and to take into accounts possible dependecies between the different entries of the matrices. \\
-The link that has just been established between the general framework and matrix factorization approaches is important but it still does not tell us how to use equation \ref{eq:evol} to account for the temporal dependencies. We also need to ddescribe how forecasting could take place in this framework. \\
-In classical MF applications like the one mentionned earlier for recommender systems, the regularization factors are often taken as the norm of the matrix (for example the Frobenius norm) to penalize high values of the larned elements. However, here, this choice would not be a good idea as it would not take into account the temporal dependecies that naturally exists in the $\mathbf{x}_t$s. In \cite{TRMF}, the authors propose a choice of regularization factors which remdies that problem.
+The link that has just been established between the general framework and matrix factorization approaches is important but it still does not tell us how to use equation \ref{eq:evol} to account for the temporal dependencies. We also need to describe how forecasting could take place in this framework. \\
+In classical MF applications like the one mentionned earlier for recommender systems, the regularization factors are often taken as the norm of the matrix (for example the Frobenius norm) to penalize high values of the larned elements. However, here, this choice would not be a good idea as it would not take into account the temporal dependecies that naturally exists in the $\mathbf{x}_t$s. In \cite{TRMF}, the authors propose a choice of regularization factor which remedies that problem.
 
 \subsection*{Temporal regularization}
 
-The goal in this section is to ddescribe a choice of regulization factor that is called $\mathcal{T}_M(X | \Theta)$ that will promote the relationship between the $\mathbf{x}_t$s given in (\ref{eq:evol}).
+The goal in this section is to describe a choice of regulization factor that is called $\mathcal{T}_M(X | \Theta)$ that will promote the relationship between the $\mathbf{x}_t$s given in (\ref{eq:evol}).
 Recall that $\Theta$ in our model contains the information that links the $\mathbf{x}_t$s together. The idea proposed is to take the log-likelihood of the $\mathbf{x}_t$s knowing $\Theta$. This is formalized by the following equation :
 
 $$\mathcal{T}_M(X | \Theta) = -\log{\mathbb{P}(\mathbf{x}_1, ..., \mathbf{x}_T|\Theta)}$$
@@ -254,9 +259,9 @@ This formulation has two main advantages :
 \end{itemize}
 
 \paragraph{Graph information among time series}
-Sometimes, a graph based information is available on the time series. This graph encodes relationship between them. The goal is to define a regularization on $F$ that will tend to promote the structure defined by the graph.
+Sometimes, a graph based information is available on the time series. This graph encodes relationships between them. The goal is to define a regularization on $F$ that will tend to promote the structure defined by the graph.
 Given a graph $G$ on the time series with weights $G_{ij}$ on the edge $i-j$, we can take the following graph regularization factor :
-$$\mathcal{G}(F|G,\eta) = \frac{1}{2}\sum_{i\sim j}G_{ij}\|\mathbf{f}_i - \mathbf{f}_j\| + \frac{\eta}{2}\sum_i \|\mathbf{f}_i\|$$
+$$\mathcal{G}(F|G,\eta) = \frac{1}{2}\sum_{i\sim j}G_{ij}\|\mathbf{f}_i - \mathbf{f}_j\|^2 + \frac{\eta}{2}\sum_i \|\mathbf{f}_i\|^2$$
 
 Our problem then becomes simply :
 
@@ -266,7 +271,7 @@ Our problem then becomes simply :
 \end{equation}
 
 \paragraph{Temporal-regularized tensor factorization}
-It is also possible to extend our framework to tensor factorization with evolution over time. To take again the example of recommender system, it is sometimes useful to model the variation over time of the preferences of a user or to model some kind of fashion effect associated to a movie. In the classial MF framework, we thus incorporate time labelled data. If $P$ denotes the matrix of latent enbeddings of the users and $Q$ of the movies, our model can be extended as :
+It is also possible to extend our framework to tensor factorization with evolution over time. To take again the example of movie recommender system, it is sometimes useful to model the variation over time of the preferences of a user or to model some kind of fashion effect associated to a movie. In the classial MF framework, we thus incorporate time labelled data. If $P$ denotes the matrix of latent enbeddings of the users and $Q$ of the movies, our model can be extended as :
 
 \begin{equation}
 \underset{P,Q,X,\Theta}{\text{min}} \sum_{(i,j,t) \in \Omega} (Y_{ijt} - \langle \mathbf{p}_i,\mathbf{q}_j,\mathbf{x}_t \rangle )^2 + \lambda_p \mathcal{R}_p(P) + \lambda_q \mathcal{R}_q(Q) + \lambda_x \mathcal{T}_M(X | \Theta) + \lambda_{\theta} R_{\theta}(\Theta)
@@ -276,7 +281,7 @@ It is also possible to extend our framework to tensor factorization with evoluti
 where $\langle \mathbf{p}_i,\mathbf{q}_j,\mathbf{x}_t \rangle$ is defined as $\sum_r p_{ir}q_{jr}x_{tr}$
 
 \subsection*{Autoregressive Temporal Regularization}
-TRMF have been described until here using a very general evolution equation (\ref{eq:evol}). In this section, we will apply the TRMF framework on a auroregressive model for the latent embeddings. Let us recall equation (\ref{eq:ar}) which defines the AR model for the time series $\mathbf{x}_t$ parametrized by the lag set $\mathcal{L}$ and the weights $W^{(l)}$ :
+TRMF have been described until here using a very general evolution equation (\ref{eq:evol}). In this section, we will apply the TRMF framework on a autoregressive model for the latent embeddings. Let us recall equation (\ref{eq:ar}) which defines the AR model for the time series $\mathbf{x}_t$ parametrized by the lag set $\mathcal{L}$ and the weights $W^{(l)}$ :
 $$\mathbf{x}_t = \sum_{l \in \mathcal{L}} W^{(l)} \mathbf{x}_{t-l} + \epsilon_t$$
 
 We would like to define a regularization factor on $X$ that promotes this model for the $\mathbf{x}_t$. A natural choice would be the following :
@@ -291,7 +296,7 @@ where $m := 1+\text{max}(\mathcal{L})$ and the last term has been added to ensur
 
 As explained previously, the TRMF framework allows us to learn the weight matrices $W^{(l)}$ when they are not known. However, as $W^{(l)} \in \mathbb{R}^{k \times k}$, the number of weights to be learned would be $|\mathcal{L}|k^2$ which can be large and lead to overfitting. We could reduce the amount of weights by assuming that the $W^{(l)}$ are diagonal. This reduces the number of weights to $|\mathcal{L}|k$.
 This correseponds to assuming that each element of the observation vector $\mathbf{y}_t$ is only influenced by the corresponding elements in the observations $\{\mathbf{y}_{t-l}\}_{l \in \mathcal{L}}$ \\
-This has the effect to decouple each time series from each other (when we talk about each time series, we mean each line of the $X$ or the $Y$ matrices). Let us rewrite $\mathcal{T}_{AR}$ in a way that enhances this decoupled structure. \\
+This has the effect of decoupling each time series from each other (when we talk about each time series, we mean each line of the $X$ or the $Y$ matrices). Let us rewrite $\mathcal{T}_{AR}$ in a way that enhances this decoupled structure. \\
 Let us denote $\mathcal{W}$ as the $k \times L$ matrix where the $l$-th column in the diagonal of $W^{(l)}$ and note that for $l \notin \mathcal{L}$, the $l$-th column of $\mathcal{W}$ is a zero vector.
 Let $\bar{\mathbf{x}}_r^{\top} = [..., X_{rt}, ...]$ be the $r$-th row of $X$ and $\bar{\mathbf{w}}_r^{\top} = [..., \mathcal{W}_{rl}, ...]$ be the $r$-th row of $\mathcal{W}$. Then, equation (\ref{eq:tar}) can be written as
 
@@ -312,23 +317,23 @@ Using $\mathcal{T}_{AR}$ as the regularization factor for $X$ in equation (\ref{
 The authors in \cite{TRMF} propose to solve (\ref{eq:model_ar}) with alternating minimization. Therefore, the minimization of the parameters when the others are fixed reduces to well-known methods.
 
 \subsection*{Conclusion}
-In this section, we have presented a new method to deal with time varying data, i.e. Temporal Regularization Matrix Factorization. As its name indicates, this method is based on Matrix Factorization techniques and makes use of a particular regularization factor to account for temporal dependencies between the data. \\
+In this section, we have presented a new method to deal with time varying data, i.e. Temporal Regularized Matrix Factorization. As its name indicates, this method is based on Matrix Factorization techniques and makes use of a particular regularization factor to account for temporal dependencies between the data. \\
 The general framewok was first discussed. Then, the method was specified in the case of an $AR$ process for the latent embedding. \\
 The main advantages of TRMF is that it is able to deal with missing data by estimating them with the latent embeddings provided by Matrix Factorization. This method has also the advantage of being more scalable than classical methods. Finally, with the framework described, the exact equation for the latent vector $\mathbf{x}_t$ must not be known \emph{a priori}.
 
-\section{Overview of linked research}
+\section{Overview of related research}
 \label{over}
-In this section, we will have a look at other ongoing research ideas that are linked to TRMF by giving an overview of the papers that cite \cite{TRMF}. Some of these topics will be explained in more details in the next sections. In particular, section \ref{app} will develop the idea of using MF to make prediction on electrical quantities. Section \ref{dl} will detail the use of deep learning in this context and evoke in particular to different network architectures. \\
+In this section, we will have a look at other ongoing research ideas that are linked to TRMF by giving an overview of the papers that cite \cite{TRMF}. Some of these topics will be explained in more details in the next sections. In particular, section \ref{app} will develop the idea of using MF to make prediction on electrical quantities. Section \ref{dl} will detail the use of deep learning in this context and evoke in particular two different network architectures. \\
 
 In \cite{1bit}, the authors explore the problem of recovering entries in a dynamically changing low-rank matrix with known factorization and one-bit obsevation on those entries. A one-bit LOWEMS (Locally Weighted Matrix Smoothing) is formulated. The idea of LOWEMS but this time for recovery with linear measurements is also explored in \cite{LOWEMS}.\\
 \cite{linear1} and \cite{linear2} extend Nonnegative Matrix Factorization (NMF) to take into account linear measurements instead of matrix entries. The work is motivated by electricity consumption prediction. \\
 A few recent papers have also taken deep learning approaches to deal with the time-varying property of the data. This is the case of \cite{ChungGCB14}, \cite{Yoon2017MultidirectionalRN}, \cite{deep1} and \cite{deep2}. \\
 Matrix Factorization is still used to model temporaal effects in recommender systems, like in \cite{rs1} and \cite{rs2}. \\
-Finally, another ongoing field of research is focusing on linear state space model for time-series forecasting (\cite{ss1}, \cite{ss2}). \\
+Finally, another ongoing part of research on this subject is focusing on linear state space model for time series forecasting (\cite{ss1}, \cite{ss2}). \\
 
 \section{Application to electrical quantities forecasting}
 \label{app}
-As stated above, TRMF can be used in various contexts that include time-varying data. One import sector that deals with this kind of data is the energy sector.
+As stated above, TRMF can be used in various contexts that include time varying data. One import sector that deals with this kind of data is the energy sector.
 For instance, in electricity market modelling, it is tremendously important to be able to forecast the elctricity demand or the production of renewable energy to adapt the centralized production.
 In \cite{Elec}, this idea of using TRMF to forecast electrical quantities is developed.
 The framework used is similar to \cite{TRMF} while being a bit simpler. Matrix factorization is used to predict new values but the temporal regularization is ignored. The idea is that we have a dataset containing history of values of a certain electrical quantity. If we arrange this data in matrix form, future values can be predicted by minimizing the error of the matrix factorization on known entries, similarly to what was proposed for Matrix Factorization in the context of recommender systems. \\
@@ -348,7 +353,7 @@ It should be noted that the approach presented in \cite{Elec}, altough using the
 \section{Deep learning methods}
 \label{dl}
 Another class of methods designed to handle time varying data are methods based on deep learning.
-Deep learning techniques construct what is called a Neural Network, i.e. a model inspired by the human brain to perform machine learning tasks. In its simplest form, it embeds a directed-graph structure composed of several layers of nodes (neurons) provided with biases/thresholds and functions of activation (similarly to real neurons). Nodes are connected to each other by edges (axons) provided with weights. \\
+Deep learning techniques construct what is called a Neural Network, i.e. a model inspired by the human brain to perform machine learning tasks. In its simplest form, it embeds a directed-graph structure composed of several layers of nodes (neurons) provided with thresholds and functions of activation (similarly to real neurons). Nodes are connected to each other by edges (axons) provided with weights. \\
 Several people have designed Neural Networks to deal with times series prediction. In this section, we present two of such methods.
 
 \subsection*{Multi-directional Recurrent Neural Networks}
@@ -368,7 +373,7 @@ $$\mathbf{h}_t = g(W\mathbf{x}_t + U\mathbf{h}_{t-1})$$
 
 where $g$ is an activation function (logistic sigmoid, hyperbolic tangent, ...) \cite{ChungGCB14}.
 
-\paragraph{Multi-directional} This means that the network operate within streams and across streams. The network will contain two blocks : the interpolation block wirst that will operate within streams and then the imputation block. Moreover, the interpolation block is formed of Bi-directional Neural Networks. These network have the property of being split into two sub-networks that are combined at the output. The inputs of the two sub-networks are respectively the sequence of data recorded before time $t$ $(Y_{i,1:t-1})$ and after time $t$ $(Y_{i,t+1:T})$. The authors of \cite{Yoon2017MultidirectionalRN} propose to respectively lag and advance the inputs in these two netwroks as reprsented on the folllowing figure :
+\paragraph{Multi-directional} This means that the network operate within streams and across streams. The network will contain two blocks : the interpolation block first that will operate within streams and then the imputation block. Moreover, the interpolation block is formed of Bi-directional Neural Networks. These networks have the property of being split into two sub-networks that are combined at the output. The inputs of the two sub-networks are respectively the sequence of data recorded before time $t$ $(Y_{i,1:t-1})$ and after time $t$ $(Y_{i,t+1:T})$. The authors of \cite{Yoon2017MultidirectionalRN} propose to respectively lag and advance the inputs in these two netwroks as represented on the folllowing figure :
 
 \begin{figure}[H]
 \centering
@@ -390,9 +395,9 @@ It should be noted that, of course, we shouldn't une $Y_{it}$ when computing $\t
 It is shown in an experimental part in \cite{Yoon2017MultidirectionalRN} that this method can yield better results than TRMF on some benchmark instances.
 
 \subsection*{Traffic forecasting}
-In \cite{Traffic}, Neural Networks are used in the context of spatiotemporal traffic forecasting. Traffic forecasting represent and interesting and challenging topic in time-series forecasting as it requires to combine temporal and spatial information to make predictions. Moreover, such problems are usually large-scale problems andd the inherent physical phenomeon that traffic represent is complex and highly nonlinear. \\
+In \cite{Traffic}, Neural Networks are used in the context of spatiotemporal traffic forecasting. Traffic forecasting represent and interesting and challenging topic in time series forecasting as it requires to combine temporal and spatial information to make predictions. Moreover, such problems are usually large-scale problems and the inherent physical phenomenon that traffic represent is complex and highly nonlinear. \\
 The authors of \cite{Traffic} propose to model the spatial dependency by a random-walk process on a graph to account for the diffusive nature of traffic and to model the temporal dynamics using a so-called Diffusion Convolutional Recurrent Neural Network. \\
-More formally, we suppose that there are $N$ sensors located on the road network and that measure a set $P$ of features related to the traffic at that point.
+More formally, we suppose that there are $N$ sensors located on the road network that measure a set $P$ of features related to the traffic at that point.
 The sensor network is modeled as a directed weighted graph $\mathcal{G}(\mathcal{V}, \mathcal{E}, W)$ where $\mathcal{V}$ is the set of nodes with $|\mathcal{V}| = N$, $\mathcal{E}$ is the set of edges and $W$ is the weights matrix. At each time stamp, the $P$ features are recorded at every node. This is denoted by the matrix $Y^{(t)} \in \mathbb{R}(P \times N)$ that represents the values of the recorded features at time $t$.
 The goal of traffic forecasting is, knowing the matrices $Y^{(t)}$ for $t \in [1,...,T]$ and the graph $\mathcal{G}$, to estimate the matrices $Y^{(t)}$ for $t \in [T+1, ..., T']$.
 
@@ -409,6 +414,9 @@ The particularity of \cite{Traffic} is that the weights of the GRU depends on th
 
 \section{Conclusion}
 \label{conc}
+Time series prediction is used in many application. The need for robust models that can deal with high-dimensional data makes it an active field of research. In this report, we first described the classical methods and highlighted their main limitations. Then, we explained the Temporal Regularized Matrix Factorization approach and showed how it can overcome the previously mentionned limitations. Then, we gave an overview of the recent ideas that are currently being proposed in this field and we detailed how MF can be applied to prediction of electrical quantities. Finally, we explained in more details how deep learning techniques are used in time series forecasting.
+
+\newpage
 
 \bibliographystyle{plain}
 \bibliography{references}
