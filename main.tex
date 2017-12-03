@@ -12,7 +12,32 @@
 \maketitle
 
 \section{Introduction}
+What will the weather be like tomorrow ?
+Will the price of oil drop in the coming weeks ?
+How will the electricity consumption evolve in a particular neighborhood ?
+People ask themselves such questions everyday.
+What they have in common is that they all try to predict the value of a quantity that changes with the time.
+With the increasing computational power provided by modern computers, people have been discovering more and more the value of data and the huge benefit that they can provide in many domains.
+In a lot of applications, this data vary with time.
+This is the case for the notions of price, consumption and production that are central to every market.
+But this can be also the case for physical phenomenon, like the weather.
+Time-series analysis is the field that studies processes involving this kind of data. \\
+In this work, we will give an overview of methods used to make predictions about time series.
+We will particularly focus on methods that can recover missing values and that can deal with large-scale data.\\
 
+This report will be organised as follows :
+\begin{itemize}
+\item Section \ref{prem} will give the main definitions and notations used in the rest of the report.
+\item Section \ref{clas} will present the classical methods used in time-series modelling, i.e. autoregressive models and dynamic linear models.
+\item Section \ref{sec:trmf} will develop the Temporal Regularization Matrix Factorization method proposed by Yu et al. (\cite{TRMF}).
+\item Section \ref{over} will give an overview of the paper that cite \cite{TRMF}.
+\item Section \ref{app} will develop a particular application of time series forecasting in more details.
+\item Section \ref{dl} will develop another class of methods popular for prediction : deep learning methods.
+\item Section \ref{conc} will give the final comments of the report.
+\end{itemize}
+
+\section{Preliminaries}
+\label{prem}
 Let us first give a definition of time series to explain the formal context in which we work. \\
 
 \theoremstyle{definition}
@@ -35,20 +60,23 @@ This means that all the information about the past is completely carried out in 
 
 $$\pi(y_{1:t}) = \pi(y_1) \cdot \prod_{j=2}^2 \pi(y_j|y_{j-1})$$
 
-\section*{Notation}
+\subsection*{Notation}
 
 Time series can be multidimentional, i.e. be a vector of several quantities that evolve with time. In that case, every such quantities are called streams. In this work, we will denote time series as matrices for which each line correspond to a stream and each column to the measurements at a fixed time. For instance, we could have a time series $Y \in \mathbb{R}^{n \times T}$. In this case, the columns of $Y$ will be noted in lowercase and bold form indexed on the time $t$, i.e. $\mathbf{y}_t$. The $i$-th row of $Y$ will be noted $Y_{i:}$ and correspond to the $i$-th stream.
 
 \subsection*{Imputation vs Interpolation}
+
 There are two ways of using the data provided to make inference on another value of the time series.
 \begin{definition}{Imputation}
 is using only the values of a fixed time to make predictions on another value of this particular time.
 \end{definition}
+
 \begin{definition}{Interpolation}
  is using the data of a single stream to infer on another value of this stream.
 \end{definition}
 
 \section{Classical methods}
+\label{clas}
 In this section, we present classical methods used for time series forecasting.
 These classical methods include AR (autoregressive) models and DLM (dynamic linear models) and are used for prediction.
 Let us explain sequentially these models.
@@ -64,7 +92,7 @@ Formally, let $\mathcal{L}$ be the set of time indices that encodes the dependen
 
 where $\{ \epsilon_t \}_{t \in \mathbb{Z}}$ is a Gaussian noise vector with for simplicity $\epsilon_t \sim \mathcal{N}(0, \sigma^2 I_k)$.
 
-This moedel is motivated by a thorem due to Wold that states that a stationary process can be represented by a MA($\infty$) model, that is
+This moedel is motivated by a thorem due to Wold that states that a stationary process can be represented by a Moving Average MA($\infty$) model, that is
 
 $$\mathbf{x}_t = \sum_{i=1}^{\infty} \beta_i \epsilon_{t-i} + \epsilon_t$$
 
@@ -153,6 +181,7 @@ Another problem with the two classical methods that we have described is that it
 We will now present the novel approach to make predictions about high-dimensional time series published in \cite{TRMF}.
 
 \section{Temporal Regularized Matrix Factorization}
+\label{sec:trmf}
 This section aims to describe the method developed in \cite{TRMF}. \\
 
 \subsection*{Framework}
@@ -171,7 +200,7 @@ Formally, this can be described by the following equations :
 The vector noise $\eta_t$ and $\epsilon_t$ are supposed to be Gaussian. These equations are parametrized by sets : $\mathcal{L}$ that contains the number of previous state vectors on wich $\mathbf{x}_t$ depends and $\Theta$ that contains the weights associated to each vector in time.
 
 \subsection*{Matrix factorization formulation}
-The primary obsevation made by the authors is that when we stack all $\mathbf{x}_t$ in a matrix $X$ and if we do the same with the $\mathbf{y}_t$ in the matrix $Y$, we can see that $Y \approx FX$. Of course, noise has been omitted in this equation and this is why it is not an equality. \\
+The primary obsevation made by the authors is that when we stack all $\mathbf{x}_t$ in a matrix $X$ and if we do the same with the $\mathbf{y}_t$ in the matrix $Y$, we can see that $Y \approx FX$. Of course, noise has been omitted in this equation and this is why it is not an equality. We notice that this idea enables to do at the same time interpolation and imputation, as defined above. \\
 
 With this observation, our problem becomes a problem of matrix factorization which has been widely studied in the past. For instance, this is a key element in some recommender systems and the use of matrix factorization in this context to perform machine learning has been used in the well-known Netflix prize in 2007.
 In the context of the Netflix prize, the incomplete matrix of ratings was decomposed into a matrix for the users and a matrix for the items. Those two matrices were learned by minimizing an mean square error on the data. \\
@@ -287,9 +316,20 @@ In this section, we have presented a new method to deal with time varying data, 
 The general framewok was first discussed. Then, the method was specified in the case of an $AR$ process for the latent embedding. \\
 The main advantages of TRMF is that it is able to deal with missing data by estimating them with the latent embeddings provided by Matrix Factorization. This method has also the advantage of being more scalable than classical methods. Finally, with the framework described, the exact equation for the latent vector $\mathbf{x}_t$ must not be known \emph{a priori}.
 
-\section{Application}
+\section{Overview of linked research}
+\label{over}
+In this section, we will have a look at other ongoing research ideas that are linked to TRMF by giving an overview of the papers that cite \cite{TRMF}. Some of these topics will be explained in more details in the next sections. In particular, section \ref{app} will develop the idea of using MF to make prediction on electrical quantities. Section \ref{dl} will detail the use of deep learning in this context and evoke in particular to different network architectures. \\
+
+In \cite{1bit}, the authors explore the problem of recovering entries in a dynamically changing low-rank matrix with known factorization and one-bit obsevation on those entries. A one-bit LOWEMS (Locally Weighted Matrix Smoothing) is formulated. The idea of LOWEMS but this time for recovery with linear measurements is also explored in \cite{LOWEMS}.\\
+\cite{linear1} and \cite{linear2} extend Nonnegative Matrix Factorization (NMF) to take into account linear measurements instead of matrix entries. The work is motivated by electricity consumption prediction. \\
+A few recent papers have also taken deep learning approaches to deal with the time-varying property of the data. This is the case of \cite{ChungGCB14}, \cite{Yoon2017MultidirectionalRN}, \cite{deep1} and \cite{deep2}. \\
+Matrix Factorization is still used to model temporaal effects in recommender systems, like in \cite{rs1} and \cite{rs2}. \\
+Finally, another ongoing field of research is focusing on linear state space model for time-series forecasting (\cite{ss1}, \cite{ss2}). \\
+
+\section{Application to electrical quantities forecasting}
+\label{app}
 As stated above, TRMF can be used in various contexts that include time-varying data. One import sector that deals with this kind of data is the energy sector.
-For instance, in electricity market modelling, it is of tremendously important to be able to forecast the elctricity demand or the production of renewable energy to be able to adapt the centralized production.
+For instance, in electricity market modelling, it is tremendously important to be able to forecast the elctricity demand or the production of renewable energy to adapt the centralized production.
 In \cite{Elec}, this idea of using TRMF to forecast electrical quantities is developed.
 The framework used is similar to \cite{TRMF} while being a bit simpler. Matrix factorization is used to predict new values but the temporal regularization is ignored. The idea is that we have a dataset containing history of values of a certain electrical quantity. If we arrange this data in matrix form, future values can be predicted by minimizing the error of the matrix factorization on known entries, similarly to what was proposed for Matrix Factorization in the context of recommender systems. \\
 To be slightly more formal, let us apply the idea on an example. We have data that corresponds to wind speed at each hour of the day from 1986 to 1995. We suppose that data of the year 1995 are missing and that we wish to recover or predict them. We build the matrix $Y$ as the matrix with $3652$ rows that correspond to the $3652$ days of the years $1986$ to $1995$ and $24$ columns at each hour in these days. The entry $Y_{i,t}$ is the wind speed that was recorded at hour $t$ of day $i$. If the wind speed for the last hour of the last day is missing, the matrix look like
@@ -306,12 +346,69 @@ It is shown in \cite{Elec} that this approach can yields better predictions than
 It should be noted that the approach presented in \cite{Elec}, altough using the same idea as \cite{TRMF} of Matrix Factorization for time-series prediction, does not develop any Temporal Regulization technique that could improve the results. Except the idea of the application to electrical quantities forecasting, it does not provide new ideas compared to the basic framework of matrix factorization for prediction that was developed during the Netflix prize.
 
 \section{Deep learning methods}
+\label{dl}
 Another class of methods designed to handle time varying data are methods based on deep learning.
 Deep learning techniques construct what is called a Neural Network, i.e. a model inspired by the human brain to perform machine learning tasks. In its simplest form, it embeds a directed-graph structure composed of several layers of nodes (neurons) provided with biases/thresholds and functions of activation (similarly to real neurons). Nodes are connected to each other by edges (axons) provided with weights. \\
 Several people have designed Neural Networks to deal with times series prediction. In this section, we present two of such methods.
 
 \subsection*{Multi-directional Recurrent Neural Networks}
 This method is developed in \cite{Yoon2017MultidirectionalRN}.
+We have seen that there are two ways of forecasting values in a time series.
+The first one, called interpolation, uses only intra-stream data whereas the second one, called imputation uses only inter-stream data at a given time stamp.
+Matrix Factorization has the important advantage to allow to do both at the same time.
+Some people have tried to come up with other ideas to combine inter-stream and intra-stream information to make predictions. This is the case of the authors of \cite{Yoon2017MultidirectionalRN} where a deep learning approcach is taken. \\
+
+\subsubsection*{Architecture}
+The Neural Network designed is called a Multi-directional Recurrent Neural Network. Let us exmplain the particularities of such a network. In the following, we denote by $Y_{it}$ the element of the time serie that we want to estimate and we denote it's estimate by $\tilde{Y}_{it}$.
+
+\paragraph{Recurrent} A Recurrent Neural Network is a network of neurons with feedback connections. In terms of the neurons graph, it means that the graph is allowed to contain loops. \\
+More formally, this Neural Network architecture maintains a recurrent hidden state whose activation at each time is dependent on that of the previous time. If we have a input sequence $(x_1, ..., x_T)$, it updates the hidden state by
+
+$$\mathbf{h}_t = g(W\mathbf{x}_t + U\mathbf{h}_{t-1})$$
+
+where $g$ is an activation function (logistic sigmoid, hyperbolic tangent, ...) \cite{ChungGCB14}.
+
+\paragraph{Multi-directional} This means that the network operate within streams and across streams. The network will contain two blocks : the interpolation block wirst that will operate within streams and then the imputation block. Moreover, the interpolation block is formed of Bi-directional Neural Networks. These network have the property of being split into two sub-networks that are combined at the output. The inputs of the two sub-networks are respectively the sequence of data recorded before time $t$ $(Y_{i,1:t-1})$ and after time $t$ $(Y_{i,t+1:T})$. The authors of \cite{Yoon2017MultidirectionalRN} propose to respectively lag and advance the inputs in these two netwroks as reprsented on the folllowing figure :
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{MRNN}
+\caption{Schematic representation of the architecture of the Multi-dimensional Neural Network from \cite{Yoon2017MultidirectionalRN}. (a) Time dimension, (b) Feature dimension.}
+\label{im:MRNN}
+\end{figure}
+
+In figure \ref{im:MRNN}(a), we can see the Bi-directional sequences as first layer of the network aswell as the lag and advance performed in the input. In what concerns the feature dimension (imputation block), a fully connected (FC) network was used.
+
+\subsubsection*{Learning}
+As usual in Machine Learning, the training is done by minimizing an error. Here, the mean-squared error (MSE) is chosen. Consider that $\Omega$ contains the pairs of indices corresponding to the entries of $Y$ that we would like to estimate. Then, the MSE can be written as follows :
+
+$$MSE(\Omega, Y, \tilde{Y}) = \frac{\sum_{(i,t) \in \Omega} (\tilde{Y}_{it} - Y_{it})^2}{|\Omega|}$$
+
+It should be noted that, of course, we shouldn't une $Y_{it}$ when computing $\tilde{Y}_{it}$. This entry is supposed to be unknown and is hidden in the learning phase.
+
+\subsubsection*{Results}
+It is shown in an experimental part in \cite{Yoon2017MultidirectionalRN} that this method can yield better results than TRMF on some benchmark instances.
+
+\subsection*{Traffic forecasting}
+In \cite{Traffic}, Neural Networks are used in the context of spatiotemporal traffic forecasting. Traffic forecasting represent and interesting and challenging topic in time-series forecasting as it requires to combine temporal and spatial information to make predictions. Moreover, such problems are usually large-scale problems andd the inherent physical phenomeon that traffic represent is complex and highly nonlinear. \\
+The authors of \cite{Traffic} propose to model the spatial dependency by a random-walk process on a graph to account for the diffusive nature of traffic and to model the temporal dynamics using a so-called Diffusion Convolutional Recurrent Neural Network. \\
+More formally, we suppose that there are $N$ sensors located on the road network and that measure a set $P$ of features related to the traffic at that point.
+The sensor network is modeled as a directed weighted graph $\mathcal{G}(\mathcal{V}, \mathcal{E}, W)$ where $\mathcal{V}$ is the set of nodes with $|\mathcal{V}| = N$, $\mathcal{E}$ is the set of edges and $W$ is the weights matrix. At each time stamp, the $P$ features are recorded at every node. This is denoted by the matrix $Y^{(t)} \in \mathbb{R}(P \times N)$ that represents the values of the recorded features at time $t$.
+The goal of traffic forecasting is, knowing the matrices $Y^{(t)}$ for $t \in [1,...,T]$ and the graph $\mathcal{G}$, to estimate the matrices $Y^{(t)}$ for $t \in [T+1, ..., T']$.
+
+\subsubsection*{Spatial dependency}
+As stated above, the spatial dependency is simply modeled by a random walk on the graph $\mathcal{G}$. The stationary ditribution of the random walk can be easily estimated. Indeed, let us denote by $\alpha$ the restart probability of the radom process. Then the stationary distribution $\mathcal{P} \in \mathbb{R}^{N \times N}$ can be computed as
+
+$$\mathcal{P} = \sum_{k=0}^{\infty} \alpha (1-\alpha)^k (D_{O}^{-1}W)^k$$
+
+where $D_{O} = \text{diag}(W\mathbf{1})$ and $\mathbf{1}$ is the vector of ones. Hence $(D_{O}^{-1}W)$ is the row normalised weight matrix. The $i$-th row of $\mathcal{P}$ represents the likelihood of diffusion from node $v_i \in \mathcal{V}$, hence the proximity with respect to the node $v_i$.
+
+\subsubsection*{Temporal dynamics}
+The temporal dynamics are modeled with a particuliar type of Neural Netork called Gated Recurrent Unit (GRU). As explained in \cite{ChungGCB14}, this is a slightly modified version of RNN to capture dependecies of different time scales. Without entering into too much details, the idea is simply to update the recurrent unit as a linear combination of the previous recurrent unit and the newly computed unit. \\
+The particularity of \cite{Traffic} is that the weights of the GRU depends on the stationary distribution $\mathcal{P}$ making it a so-called Diffusion Convolutional Gated Recurrent Unit (DCGRU).
+
+\section{Conclusion}
+\label{conc}
 
 \bibliographystyle{plain}
 \bibliography{references}
